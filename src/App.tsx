@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import WebApp from "@twa-dev/sdk";
 import { motion } from 'framer-motion';
 import Header from './components/Header';
 import CrystalField from './components/CrystalField';
@@ -7,11 +8,25 @@ import { useGiftData } from './hooks/useGiftData';
 import { Gift, TimeFilter } from './types/Gift';
 
 function App() {
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('today');
-  const [showSmallChanges, setShowSmallChanges] = useState(true);
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h');
+  const [showSmallChanges, setShowSmallChanges] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGift, setSelectedGift] = useState<Gift | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // ✅ تهيئة Telegram WebApp SDK
+  useEffect(() => {
+    WebApp.ready();     // يخبر تيليجرام أن التطبيق جاهز
+    WebApp.expand();    // يطلب توسيع الواجهة
+
+    // تغيير لون الهيدر (بشكل آمن)
+    if (window.Telegram?.WebApp?.setHeaderColor) {
+      window.Telegram.WebApp.setHeaderColor("#0f172a");
+    }
+
+    // طباعة لمراجعة التهيئة
+    console.log("Telegram WebApp initialized:", WebApp);
+  }, []);
 
   const { gifts, trendData, lastUpdate } = useGiftData(timeFilter);
 
@@ -26,20 +41,19 @@ function App() {
   };
 
   const handleRefresh = () => {
-    // In a real app, this would trigger a data refresh
     window.location.reload();
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-black text-white">
       {/* App Title */}
-      <motion.div 
-        className="bg-gray-900/95 backdrop-blur-md border-b border-gray-800 px-4 py-3"
+      <motion.div
+        className="bg-gray-900/95 backdrop-blur-sm p-4 text-center sticky top-0 z-20"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-xl font-bold text-center bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
+        <h1 className="text-xl font-bold text-center text-white">
           Gift Crystals
         </h1>
       </motion.div>
@@ -73,9 +87,9 @@ function App() {
       />
 
       {/* Background Effects */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-green-900/5 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-red-900/5 to-transparent" />
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-30"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-transparent to-slate-900 opacity-40"></div>
       </div>
     </div>
   );

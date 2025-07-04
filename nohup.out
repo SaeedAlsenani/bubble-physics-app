@@ -1,0 +1,27 @@
+Server closed the connection: [Errno 103] Software caused connection abort
+Attempt 1 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 2 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 3 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 4 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 5 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 6 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 1 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 2 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 3 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 4 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 5 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 6 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 1 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 2 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 3 at connecting failed: OSError: [Errno 101] Network is unreachable
+Attempt 4 at connecting failed: OSError: [Errno 113] Connect call failed ('149.154.167.92', 443)
+Attempt 5 at connecting failed: OSError: [Errno 113] Connect call failed ('149.154.167.92', 443)
+Attempt 6 at connecting failed: OSError: [Errno 113] Connect call failed ('149.154.167.92', 443)
+Attempt 1 at connecting failed: OSError: [Errno 113] Connect call failed ('149.154.167.92', 443)
+Attempt 2 at connecting failed: OSError: [Errno 113] Connect call failed ('149.154.167.92', 443)
+Attempt 3 at connecting failed: OSError: [Errno 113] Connect call failed ('149.154.167.92', 443)
+Attempt 4 at connecting failed: OSError: [Errno 113] Connect call failed ('149.154.167.92', 443)
+Attempt 5 at connecting failed: OSError: [Errno 113] Connect call failed ('149.154.167.92', 443)
+Attempt 6 at connecting failed: OSError: [Errno 113] Connect call failed ('149.154.167.92', 443)
+Attempt 1 at connecting failed: OSError: [Errno 113] Connect call failed ('149.154.167.92', 443)
+Attempt 2 at connecting failed: OSError: [Errno 113] Connect call failed ('149.154.167.92', 443)
