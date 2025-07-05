@@ -24,13 +24,11 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
   searchQuery, 
   showSmallChanges 
 }) => {
-  // الحالة والمراجع
   const [crystalPositions, setCrystalPositions] = useState<CrystalPosition[]>([]);
   const fieldRef = React.useRef<HTMLDivElement>(null);
   const collisionGrid = React.useRef<boolean[][]>([]);
-  const gridCellSize = 30; // حجم خلية شبكة الاصطدام
+  const gridCellSize = 30;
 
-  // فلترة الهدايا باستخدام useMemo لتحسين الأداء
   const filteredGifts = useMemo(() => {
     return gifts.filter(gift => {
       const matchesSearch = gift.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -39,7 +37,6 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
     });
   }, [gifts, searchQuery, showSmallChanges]);
 
-  // حساب حجم البلورة مع الحدود الجديدة
   const getCrystalSize = useCallback((gift: Gift) => {
     const baseSize = 60;
     const changeMultiplier = Math.min(Math.abs(gift.percentChange) / 10, 2);
@@ -53,22 +50,20 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
     
     return Math.max(20, Math.min(150, 
       baseSize + (changeMultiplier * 15) + (volumeMultiplier * 10) + (rarityMultiplier * 5)
-    );
+    ));
   }, []);
 
-  // إنشاء شبكة الاصطدام
   const initializeCollisionGrid = useCallback((width: number, height: number) => {
     const cols = Math.ceil(width / gridCellSize);
     const rows = Math.ceil(height / gridCellSize);
     collisionGrid.current = Array(rows).fill(false).map(() => Array(cols).fill(false));
   }, []);
 
-  // التحقق من الموقع المتاح
   const isPositionAvailable = useCallback((x: number, y: number, size: number) => {
     if (!collisionGrid.current.length) return true;
     
     const radius = size / 2;
-    const buffer = 5; // مسافة أمان بين البلورات
+    const buffer = 5;
     
     const startCol = Math.max(0, Math.floor((x - radius - buffer) / gridCellSize));
     const endCol = Math.min(collisionGrid.current[0].length - 1, 
@@ -88,7 +83,6 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
     return true;
   }, []);
 
-  // حجز الموقع في شبكة الاصطدام
   const reservePosition = useCallback((x: number, y: number, size: number) => {
     if (!collisionGrid.current.length) return;
     
@@ -108,7 +102,6 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
     }
   }, []);
 
-  // توليد المواقع مع منع التداخل
   const generatePositions = useCallback(() => {
     const container = fieldRef.current;
     if (!container) return;
@@ -123,7 +116,6 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
     const margin = 50;
     const maxAttempts = 100;
     
-    // ترتيب البلورات بحجم تنازلي لتحسين التوزيع
     const sortedGifts = [...filteredGifts].sort((a, b) => 
       getCrystalSize(b) - getCrystalSize(a)
     );
@@ -152,7 +144,6 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
         }
       } while (!positionFound && attempts < maxAttempts);
       
-      // إذا فشلنا في إيجاد موقع، نضعها في مكان عشوائي مع تعديل
       if (!positionFound) {
         x = margin + Math.random() * (width - 2 * margin);
         y = margin + Math.random() * (height - 2 * margin);
@@ -170,7 +161,6 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
     setCrystalPositions(positions);
   }, [filteredGifts, getCrystalSize, initializeCollisionGrid, isPositionAvailable, reservePosition]);
 
-  // تحديث المواقع عند تغيير البيانات أو حجم النافذة
   useEffect(() => {
     generatePositions();
     
@@ -182,7 +172,6 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, [generatePositions]);
 
-  // تحديث موقع البلورة مع التحقق من الاصطدام
   const updateCrystalPosition = useCallback((id: string, newX: number, newY: number) => {
     setCrystalPositions(prev => {
       const updated = [...prev];
@@ -193,7 +182,6 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
       const crystal = updated[crystalIndex];
       const newPosition = { ...crystal, x: newX, y: newY };
       
-      // التحقق من الاصطدام مع البلورات الأخرى
       const hasCollision = updated.some((pos, index) => {
         if (index === crystalIndex || pos.id === id) return false;
         
@@ -214,7 +202,6 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
     });
   }, []);
 
-  // تأثيرات الجسيمات المحسنة
   const renderParticles = useMemo(() => {
     return Array.from({ length: Math.min(12, filteredGifts.length * 0.5) }).map((_, i) => (
       <motion.div
@@ -248,11 +235,9 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* تأثيرات الإضاءة الخلفية المحسنة */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.03),transparent_70%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(239,68,68,0.03),transparent_70%)]" />
       
-      {/* البلورات مع نظام فيزيائي محسن */}
       {crystalPositions.map((position) => {
         const gift = filteredGifts.find(g => g.id === position.id);
         if (!gift) return null;
@@ -270,7 +255,6 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
         );
       })}
       
-      {/* حالة عدم وجود نتائج */}
       {filteredGifts.length === 0 && (
         <motion.div 
           className="absolute inset-0 flex items-center justify-center"
@@ -292,7 +276,6 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
         </motion.div>
       )}
       
-      {/* جسيمات عائمة مع تحسين الأداء */}
       {renderParticles}
     </motion.div>
   );
