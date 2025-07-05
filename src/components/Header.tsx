@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, TrendingUp, TrendingDown, RefreshCw, Search } from 'lucide-react';
 import { TrendData, TimeFilter } from '../types/Gift';
@@ -41,7 +41,6 @@ const Header: React.FC<HeaderProps> = ({
   lastUpdate,
   onRefresh
 }) => {
-  const [tgTheme, setTgTheme] = useState('dark');
   const timeFilters: { key: TimeFilter; label: string }[] = [
     { key: 'today', label: 'Day' },
     { key: 'week', label: 'Week' },
@@ -49,23 +48,13 @@ const Header: React.FC<HeaderProps> = ({
     { key: 'alltime', label: 'All time' }
   ];
 
-  useEffect(() => {
-    if (window.Telegram?.WebApp) {
-      setTgTheme(window.Telegram.WebApp.colorScheme);
-    }
-  }, []);
-
   const handleTimeFilterChange = useCallback((filter: TimeFilter) => {
     onTimeFilterChange(filter);
   }, [onTimeFilterChange]);
 
-  const bgColor = tgTheme === 'dark' ? 'bg-gray-900/95' : 'bg-white/95';
-  const borderColor = tgTheme === 'dark' ? 'border-gray-800' : 'border-gray-200';
-  const textColor = tgTheme === 'dark' ? 'text-white' : 'text-gray-900';
-
   return (
     <motion.div 
-      className={`${bgColor} backdrop-blur-md border-b ${borderColor} p-4 space-y-4`}
+      className="bg-gray-900/95 backdrop-blur-md border-b border-gray-800 p-4 space-y-4"
       variants={containerVariants}
       initial="hidden"
       animate="show"
@@ -74,19 +63,19 @@ const Header: React.FC<HeaderProps> = ({
       <motion.div className="flex items-center justify-between" variants={itemVariants}>
         {/* Left: Gifts Dropdown */}
         <motion.div 
-          className={`flex items-center bg-gray-800/50 rounded-lg px-3 py-2 border ${borderColor} cursor-pointer`}
+          className="flex items-center bg-gray-800/50 rounded-lg px-3 py-2 border border-gray-700 cursor-pointer"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           variants={itemVariants}
         >
-          <span className={`${textColor} font-medium`}>Gifts</span>
+          <span className="text-white font-medium">Gifts</span>
           <ChevronDown className="w-4 h-4 ml-2 text-gray-400" />
         </motion.div>
 
         {/* Right: Trend Counter */}
         <div className="flex items-center space-x-4">
           <motion.div 
-            className={`flex items-center bg-gray-800/50 rounded-lg px-3 py-2 border ${borderColor}`}
+            className="flex items-center bg-gray-800/50 rounded-lg px-3 py-2 border border-gray-700"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             variants={itemVariants}
@@ -104,7 +93,7 @@ const Header: React.FC<HeaderProps> = ({
           </motion.div>
 
           <motion.div 
-            className={`flex items-center bg-gray-800/50 rounded-lg px-3 py-2 border ${borderColor}`}
+            className="flex items-center bg-gray-800/50 rounded-lg px-3 py-2 border border-gray-700"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             variants={itemVariants}
@@ -135,7 +124,7 @@ const Header: React.FC<HeaderProps> = ({
               className={`px-4 py-2 rounded-lg border transition-all ${
                 timeFilter === filter.key
                   ? 'bg-green-500 text-white border-green-500'
-                  : `bg-gray-800/50 ${textColor} border-gray-600 hover:border-gray-500`
+                  : 'bg-gray-800/50 text-gray-300 border-gray-600 hover:border-gray-500'
               }`}
               onClick={() => handleTimeFilterChange(filter.key)}
               whileHover={{ scale: 1.05 }}
@@ -161,7 +150,7 @@ const Header: React.FC<HeaderProps> = ({
               onChange={onToggleSmallChanges}
               className="w-4 h-4 text-green-500 bg-gray-800 border-gray-600 rounded focus:ring-green-500"
             />
-            <span className={`text-gray-300 text-sm ${textColor}`}>Show small changes</span>
+            <span className="text-gray-300 text-sm">Show small changes</span>
           </label>
         </div>
       </motion.div>
@@ -175,14 +164,14 @@ const Header: React.FC<HeaderProps> = ({
             placeholder="Search gifts..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className={`w-full bg-gray-800/50 border ${borderColor} rounded-lg pl-10 pr-4 py-2 ${textColor} placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
+            className="w-full bg-gray-800/50 border border-gray-600 rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             aria-label="Search gifts"
           />
         </div>
         
         <motion.button
           onClick={onRefresh}
-          className={`flex items-center space-x-2 bg-gray-800/50 border ${borderColor} rounded-lg px-3 py-2 text-gray-300 hover:text-white transition-colors`}
+          className="flex items-center space-x-2 bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-gray-300 hover:text-white transition-colors"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95, rotate: 180 }}
           aria-label={`Refresh data, last updated at ${lastUpdate.toLocaleTimeString()}`}
