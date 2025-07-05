@@ -16,20 +16,12 @@ function App() {
 
   // ✅ تهيئة Telegram WebApp SDK
 useEffect(() => {
-  const isTelegram = typeof WebApp !== "undefined" && window.Telegram?.WebApp;
-
-  if (!isTelegram) return;
-
-  const timeout = setTimeout(() => {
+  if (typeof window !== "undefined" && window.Telegram?.WebApp) {
     WebApp.ready();
     WebApp.expand();
     WebApp.setHeaderColor("#0f172a");
-    console.log("Telegram WebApp initialized safely.");
-  }, 300);
-
-  return () => {
-    clearTimeout(timeout);
-  };
+    console.log("✅ Telegram WebApp initialized.");
+  }
 }, []);
       console.log("Telegram WebApp initialized safely:", WebApp);
     }
