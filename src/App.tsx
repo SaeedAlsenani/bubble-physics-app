@@ -28,6 +28,11 @@ useEffect(() => {
 
     return () => clearTimeout(timeout);
   }
+
+  return undefined;
+}, []);
+    return () => clearTimeout(timeout);
+  }
 }, []);
 
       console.log("Telegram WebApp initialized safely:", WebApp);
