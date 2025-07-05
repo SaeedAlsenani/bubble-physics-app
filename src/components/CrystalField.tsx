@@ -1,14 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Crystal from './Crystal';
 import { Gift } from '../types/Gift';
-
-interface CrystalFieldProps {
-  gifts: Gift[];
-  onCrystalClick: (gift: Gift) => void;
-  searchQuery: string;
-  showSmallChanges: boolean;
-}
 
 interface CrystalPosition {
   id: string;
@@ -16,18 +9,20 @@ interface CrystalPosition {
   y: number;
   size: number;
   zIndex: number;
+  isDragging: boolean;
 }
 
-const CrystalField: React.FC<CrystalFieldProps> = ({ 
-  gifts, 
-  onCrystalClick, 
-  searchQuery, 
-  showSmallChanges 
-}) => {
-  const [crystalPositions, setCrystalPositions] = useState<CrystalPosition[]>([]);
+const CrystalField: React.FC<{
+  gifts: Gift[];
+  onCrystalClick: (gift: Gift) => void;
+  searchQuery: string;
+  showSmallChanges: boolean;
+}> = ({ gifts, onCrystalClick, searchQuery, showSmallChanges }) => {
   const fieldRef = React.useRef<HTMLDivElement>(null);
-  const collisionGrid = React.useRef<boolean[][]>([]);
-  const gridCellSize = 30;
+  const [crystalPositions, setCrystalPositions] = useState<CrystalPosition[]>([]);
+  const repulsionForce = 1.5;
+  const minDistance = 30;
+  const edgeMargin = 20;
 
   const filteredGifts = useMemo(() => {
     return gifts.filter(gift => {
@@ -38,7 +33,7 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
   }, [gifts, searchQuery, showSmallChanges]);
 
   const getCrystalSize = useCallback((gift: Gift) => {
-    const baseSize = 60;
+    const baseSize = 40;
     const changeMultiplier = Math.min(Math.abs(gift.percentChange) / 10, 2);
     const volumeMultiplier = Math.min(gift.volume / 1000, 1.5);
     const rarityMultiplier = {
@@ -49,225 +44,159 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
     }[gift.rarity];
     
     return Math.max(20, Math.min(150, 
-      baseSize + (changeMultiplier * 15) + (volumeMultiplier * 10) + (rarityMultiplier * 5)
+      baseSize + changeMultiplier * 15 + volumeMultiplier * 10 + rarityMultiplier * 5
     ));
   }, []);
 
-  const initializeCollisionGrid = useCallback((width: number, height: number) => {
-    const cols = Math.ceil(width / gridCellSize);
-    const rows = Math.ceil(height / gridCellSize);
-    collisionGrid.current = Array(rows).fill(false).map(() => Array(cols).fill(false));
-  }, []);
-
-  const isPositionAvailable = useCallback((x: number, y: number, size: number) => {
-    if (!collisionGrid.current.length) return true;
-    
-    const radius = size / 2;
-    const buffer = 5;
-    
-    const startCol = Math.max(0, Math.floor((x - radius - buffer) / gridCellSize));
-    const endCol = Math.min(collisionGrid.current[0].length - 1, 
-      Math.floor((x + radius + buffer) / gridCellSize));
-    
-    const startRow = Math.max(0, Math.floor((y - radius - buffer) / gridCellSize));
-    const endRow = Math.min(collisionGrid.current.length - 1, 
-      Math.floor((y + radius + buffer) / gridCellSize));
-    
-    for (let row = startRow; row <= endRow; row++) {
-      for (let col = startCol; col <= endCol; col++) {
-        if (collisionGrid.current[row][col]) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }, []);
-
-  const reservePosition = useCallback((x: number, y: number, size: number) => {
-    if (!collisionGrid.current.length) return;
-    
-    const radius = size / 2;
-    const startCol = Math.max(0, Math.floor((x - radius) / gridCellSize));
-    const endCol = Math.min(collisionGrid.current[0].length - 1, 
-      Math.floor((x + radius) / gridCellSize));
-    
-    const startRow = Math.max(0, Math.floor((y - radius) / gridCellSize));
-    const endRow = Math.min(collisionGrid.current.length - 1, 
-      Math.floor((y + radius) / gridCellSize));
-    
-    for (let row = startRow; row <= endRow; row++) {
-      for (let col = startCol; col <= endCol; col++) {
-        collisionGrid.current[row][col] = true;
-      }
-    }
-  }, []);
-
-  const generatePositions = useCallback(() => {
+  const generateInitialPositions = useCallback(() => {
     const container = fieldRef.current;
     if (!container) return;
 
-    const rect = container.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    
-    initializeCollisionGrid(width, height);
-    
+    const width = container.clientWidth;
+    const height = container.clientHeight;
     const positions: CrystalPosition[] = [];
-    const margin = 50;
-    const maxAttempts = 100;
-    
-    const sortedGifts = [...filteredGifts].sort((a, b) => 
-      getCrystalSize(b) - getCrystalSize(a)
-    );
+    const maxAttempts = 500;
 
-    sortedGifts.forEach((gift, index) => {
+    filteredGifts.forEach((gift, index) => {
       const size = getCrystalSize(gift);
-      let x, y;
-      let attempts = 0;
       let positionFound = false;
-      
-      do {
-        x = margin + Math.random() * (width - 2 * margin);
-        y = margin + Math.random() * (height - 2 * margin);
-        attempts++;
-        
-        if (isPositionAvailable(x, y, size)) {
-          reservePosition(x, y, size);
-          positions.push({
-            id: gift.id,
-            x,
-            y,
-            size,
-            zIndex: positions.length
-          });
-          positionFound = true;
-        }
-      } while (!positionFound && attempts < maxAttempts);
-      
-      if (!positionFound) {
-        x = margin + Math.random() * (width - 2 * margin);
-        y = margin + Math.random() * (height - 2 * margin);
-        reservePosition(x, y, size);
-        positions.push({
-          id: gift.id,
-          x,
-          y,
-          size,
-          zIndex: positions.length
+      let attempts = 0;
+      let x = 0, y = 0;
+
+      while (!positionFound && attempts < maxAttempts) {
+        x = edgeMargin + size / 2 + Math.random() * (width - size - 2 * edgeMargin);
+        y = edgeMargin + size / 2 + Math.random() * (height - size - 2 * edgeMargin);
+
+        positionFound = positions.every(pos => {
+          const dx = x - pos.x;
+          const dy = y - pos.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const minAllowed = (size + pos.size) / 2 + minDistance;
+          return distance >= minAllowed;
         });
+
+        attempts++;
       }
-    });
-    
-    setCrystalPositions(positions);
-  }, [filteredGifts, getCrystalSize, initializeCollisionGrid, isPositionAvailable, reservePosition]);
 
-  useEffect(() => {
-    generatePositions();
-    
-    const handleResize = () => {
-      generatePositions();
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [generatePositions]);
+      if (!positionFound) return;
 
-  const updateCrystalPosition = useCallback((id: string, newX: number, newY: number) => {
-    setCrystalPositions(prev => {
-      const updated = [...prev];
-      const crystalIndex = updated.findIndex(pos => pos.id === id);
-      
-      if (crystalIndex === -1) return prev;
-      
-      const crystal = updated[crystalIndex];
-      const newPosition = { ...crystal, x: newX, y: newY };
-      
-      const hasCollision = updated.some((pos, index) => {
-        if (index === crystalIndex || pos.id === id) return false;
-        
-        const distance = Math.sqrt(
-          Math.pow(newX - pos.x, 2) + 
-          Math.pow(newY - pos.y, 2)
-        );
-        const minDistance = (newPosition.size + pos.size) / 2 + 10;
-        
-        return distance < minDistance;
+      positions.push({
+        id: gift.id,
+        x,
+        y,
+        size,
+        zIndex: index,
+        isDragging: false
       });
-      
-      if (!hasCollision) {
-        updated[crystalIndex] = newPosition;
-      }
-      
-      return updated;
     });
+
+    setCrystalPositions(positions);
+  }, [filteredGifts, getCrystalSize]);
+
+  const applyRepulsion = useCallback(() => {
+    setCrystalPositions(prev => {
+      const newPos = [...prev];
+      const width = fieldRef.current?.clientWidth || window.innerWidth;
+      const height = fieldRef.current?.clientHeight || window.innerHeight;
+
+      newPos.forEach((pos, i) => {
+        if (pos.isDragging) return;
+
+        let fx = 0, fy = 0;
+
+        newPos.forEach((other, j) => {
+          if (i === j) return;
+          const dx = other.x - pos.x;
+          const dy = other.y - pos.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          const minAllowed = (pos.size + other.size) / 2 + minDistance;
+          if (d < minAllowed) {
+            const F = repulsionForce * (minAllowed - d) / (d || 1);
+            fx -= dx * F;
+            fy -= dy * F;
+          }
+        });
+
+        let nx = pos.x + fx;
+        let ny = pos.y + fy;
+
+        nx = Math.max(pos.size / 2 + edgeMargin, Math.min(width - pos.size / 2 - edgeMargin, nx));
+        ny = Math.max(pos.size / 2 + edgeMargin, Math.min(height - pos.size / 2 - edgeMargin, ny));
+
+        newPos[i] = { ...pos, x: nx, y: ny };
+      });
+
+      return newPos;
+    });
+  }, [repulsionForce, minDistance]);
+
+  // توزيع أولي بدون حركة مستمرة
+  useEffect(() => {
+    generateInitialPositions();
+    if (typeof ResizeObserver !== 'undefined' && fieldRef.current) {
+      const obs = new ResizeObserver(generateInitialPositions);
+      obs.observe(fieldRef.current);
+      return () => obs.disconnect();
+    }
+  }, [generateInitialPositions]);
+
+  // تطبيق النفور مرة واحدة فقط
+  useEffect(() => {
+    applyRepulsion();
+  }, [applyRepulsion]);
+
+  const handleDragStart = useCallback((id: string) => {
+    setCrystalPositions(prev =>
+      prev.map(p => p.id === id ? { ...p, isDragging: true, zIndex: prev.length } : p)
+    );
   }, []);
 
-  const renderParticles = useMemo(() => {
-    return Array.from({ length: Math.min(12, filteredGifts.length * 0.5) }).map((_, i) => (
-      <motion.div
-        key={`particle-${i}`}
-        className="absolute w-1 h-1 bg-white/20 rounded-full pointer-events-none"
-        style={{
-          left: `${10 + (i * 8) % 90}%`,
-          top: `${15 + (i % 7) * 12}%`,
-        }}
-        animate={{
-          y: [0, -15, 0],
-          opacity: [0.1, 0.4, 0.1],
-          scale: [1, 1.3, 1]
-        }}
-        transition={{
-          duration: 5 + i,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: i * 0.2
-        }}
-      />
-    ));
-  }, [filteredGifts.length]);
+  const handleDragEnd = useCallback((id: string, x: number, y: number) => {
+    setCrystalPositions(prev => {
+      const updated = prev.map(p => p.id === id ? { ...p, isDragging: false, x, y, zIndex: prev.length } : p);
+      setTimeout(applyRepulsion, 100);
+      return updated;
+    });
+  }, [applyRepulsion]);
 
   return (
     <motion.div
       ref={fieldRef}
-      id="crystal-field"
-      className="relative flex-1 bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden"
+      className="relative w-full h-full bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.03),transparent_70%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(239,68,68,0.03),transparent_70%)]" />
-      
-      {crystalPositions.map((position) => {
-        const gift = filteredGifts.find(g => g.id === position.id);
+
+      {crystalPositions.map(pos => {
+        const gift = filteredGifts.find(g => g.id === pos.id);
         if (!gift) return null;
-        
         return (
           <Crystal
             key={gift.id}
             gift={gift}
-            size={position.size}
-            position={{ x: position.x, y: position.y }}
+            size={pos.size}
+            position={{ x: pos.x, y: pos.y }}
             onClick={() => onCrystalClick(gift)}
-            onDragEnd={(x, y) => updateCrystalPosition(gift.id, x, y)}
-            isLayoutStable={true}
+            onDragStart={() => handleDragStart(gift.id)}
+            onDragEnd={(x, y) => handleDragEnd(gift.id, x, y)}
+            zIndex={pos.zIndex}
+            isDragging={pos.isDragging}
           />
         );
       })}
-      
+
       {filteredGifts.length === 0 && (
-        <motion.div 
+        <motion.div
           className="absolute inset-0 flex items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
           <div className="text-center space-y-4">
-            <motion.div 
-              animate={{ y: [-10, 0, -10] }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="text-6xl"
-            >
+            <motion.div animate={{ y: [-10, 0, -10] }} transition={{ duration: 4, repeat: Infinity }} className="text-6xl">
               💎
             </motion.div>
             <div className="text-gray-400 text-lg">No crystals found</div>
@@ -275,8 +204,6 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
           </div>
         </motion.div>
       )}
-      
-      {renderParticles}
     </motion.div>
   );
 };
