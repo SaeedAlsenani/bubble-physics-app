@@ -18,20 +18,18 @@ function App() {
 useEffect(() => {
   const isTelegram = typeof WebApp !== "undefined" && window.Telegram?.WebApp;
 
-  if (isTelegram) {
-    const timeout = setTimeout(() => {
-      WebApp.ready();
-      WebApp.expand();
-      WebApp.setHeaderColor("#0f172a");
-      console.log("Telegram WebApp initialized safely.");
-    }, 300);
+  if (!isTelegram) return;
 
-    return () => {
-      clearTimeout(timeout);
-    };
-  } else {
-    return () => {};
-  }
+  const timeout = setTimeout(() => {
+    WebApp.ready();
+    WebApp.expand();
+    WebApp.setHeaderColor("#0f172a");
+    console.log("Telegram WebApp initialized safely.");
+  }, 300);
+
+  return () => {
+    clearTimeout(timeout);
+  };
 }, []);
       console.log("Telegram WebApp initialized safely:", WebApp);
     }
