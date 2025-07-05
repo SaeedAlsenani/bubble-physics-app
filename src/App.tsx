@@ -26,15 +26,13 @@ useEffect(() => {
       console.log("Telegram WebApp initialized safely.");
     }, 300);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+    };
+  } else {
+    return () => {};
   }
-
-  return undefined;
 }, []);
-    return () => clearTimeout(timeout);
-  }
-}, []);
-
       console.log("Telegram WebApp initialized safely:", WebApp);
     }
   }, 300); // نأخر التشغيل لضمان استقرار الواجهة
