@@ -9,33 +9,22 @@ import { Gift, TimeFilter } from './types/Gift';
 
 function App() {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h');
-  const [showSmallChanges, setShowSmallChanges] = useState(false);
+  const [showSmallChanges, setShowSmallChanges] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGift, setSelectedGift] = useState<Gift | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const { gifts, trendData, lastUpdate } = useGiftData();
+
   // ✅ تهيئة Telegram WebApp SDK
-useEffect(() => {
-  if (typeof window !== "undefined" && window.Telegram?.WebApp) {
-    WebApp.ready();
-    WebApp.expand();
-    WebApp.setHeaderColor("#0f172a");
-    console.log("✅ Telegram WebApp initialized.");
-  }
-}, []);
-      console.log("Telegram WebApp initialized safely:", WebApp);
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.Telegram?.WebApp) {
+      WebApp.ready();
+      WebApp.expand();
+      WebApp.setHeaderColor("#0f172a");
+      console.log("✅ Telegram WebApp initialized.");
     }
-  }, 300); // نأخر التشغيل لضمان استقرار الواجهة
-
-  return () => clearTimeout(timeout);
-}, []);
-    }
-
-    // طباعة لمراجعة التهيئة
-    console.log("Telegram WebApp initialized:", WebApp);
   }, []);
-
-  const { gifts, trendData, lastUpdate } = useGiftData(timeFilter);
 
   const handleCrystalClick = (gift: Gift) => {
     setSelectedGift(gift);
@@ -52,17 +41,15 @@ useEffect(() => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white flex flex-col">
       {/* App Title */}
       <motion.div
-        className="bg-gray-900/95 backdrop-blur-sm p-4 text-center sticky top-0 z-20"
+        className="bg-gray-900/95 backdrop-blur-lg p-4"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-xl font-bold text-center text-white">
-          Gift Crystals
-        </h1>
+        <h1 className="text-xl font-bold text-center">Gift Crystals</h1>
       </motion.div>
 
       {/* Header */}
@@ -92,12 +79,6 @@ useEffect(() => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
       />
-
-      {/* Background Effects */}
-      <div className="fixed inset-0 pointer-events-none -z-10">
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black opacity-30"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-transparent to-slate-900 opacity-40"></div>
-      </div>
     </div>
   );
 }
