@@ -25,7 +25,7 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
 }) => {
   const fieldRef = React.useRef<HTMLDivElement>(null);
   const [crystalPositions, setCrystalPositions] = useState<CrystalPosition[]>([]);
-  const [fieldSize, setFieldSize] = useState({ width: 0, height: 0 });
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Filter gifts with memoization
   const filteredGifts = useMemo(() => {
@@ -60,8 +60,7 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
 
     const width = container.clientWidth;
     const height = container.clientHeight;
-    setFieldSize({ width, height });
-
+    
     const positions: CrystalPosition[] = [];
     const margin = 50;
     const maxAttempts = 100;
@@ -89,12 +88,13 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
         attempts++;
       }
 
-      if (positionFound) {
+      if (positionFound || attempts >= maxAttempts) {
         positions.push({ id: gift.id, x, y, size });
       }
     });
 
     setCrystalPositions(positions);
+    setIsInitialized(true);
   }, [filteredGifts, getCrystalSize]);
 
   // Update positions on drag end
@@ -108,11 +108,17 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
 
   // Initialize and handle resize
   useEffect(() => {
-    generatePositions();
-    const handleResize = () => generatePositions();
+    if (filteredGifts.length > 0) {
+      generatePositions();
+    }
+    const handleResize = () => {
+      if (filteredGifts.length > 0) {
+        generatePositions();
+      }
+    };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [generatePositions]);
+  }, [filteredGifts, generatePositions]);
 
   return (
     <motion.div
@@ -126,8 +132,8 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.03),transparent_70%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(239,68,68,0.03),transparent_70%)]" />
       
-      {/* Crystals - all with same z-index (no elevation change) */}
-      {crystalPositions.map((position) => {
+      {/* Crystals - all with same z-index */}
+      {isInitialized && crystalPositions.map((position) => {
         const gift = filteredGifts.find(g => g.id === position.id);
         if (!gift) return null;
         
@@ -139,7 +145,6 @@ const CrystalField: React.FC<CrystalFieldProps> = ({
             position={{ x: position.x, y: position.y }}
             onClick={() => onCrystalClick(gift)}
             onDragEnd={(x, y) => handleDragEnd(gift.id, x, y)}
-            isDragging={false} // Visual appearance remains consistent
           />
         );
       })}
