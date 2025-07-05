@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { motion, useMotionValue, useSpring, useAnimation } from 'framer-motion';
+import { motion } from 'framer-motion'; // ✅ أبقينا فقط ما يُستخدم
 import Crystal from './Crystal';
 import { Gift } from '../types/Gift';
 
@@ -18,14 +18,12 @@ const CrystalField: React.FC<{
   searchQuery: string;
   showSmallChanges: boolean;
 }> = ({ gifts, onCrystalClick, searchQuery, showSmallChanges }) => {
-  // الحالة والمراجع
   const fieldRef = React.useRef<HTMLDivElement>(null);
   const [crystalPositions, setCrystalPositions] = useState<CrystalPosition[]>([]);
-  const repulsionForce = 1.5; // قوة التنافر بين البلورات
-  const minDistance = 30; // الحد الأدنى للمسافة بين المراكز
-  const edgeMargin = 20; // الهامش من حواف الشاشة
+  const repulsionForce = 1.5;
+  const minDistance = 30;
+  const edgeMargin = 20;
 
-  // فلترة الهدايا
   const filteredGifts = useMemo(() => {
     return gifts.filter(gift => {
       const matchesSearch = gift.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -34,7 +32,6 @@ const CrystalField: React.FC<{
     });
   }, [gifts, searchQuery, showSmallChanges]);
 
-  // حساب حجم البلورة مع الحدود الجديدة
   const getCrystalSize = useCallback((gift: Gift) => {
     const baseSize = 40;
     const changeMultiplier = Math.min(Math.abs(gift.percentChange) / 10, 2);
@@ -51,7 +48,6 @@ const CrystalField: React.FC<{
     ));
   }, []);
 
-  // توليد مواقع أولية مع منع التصادم
   const generateInitialPositions = useCallback(() => {
     const container = fieldRef.current;
     if (!container) return;
@@ -60,9 +56,8 @@ const CrystalField: React.FC<{
     const height = container.clientHeight;
     const positions: CrystalPosition[] = [];
 
-    // خوارزمية توزيع متقدمة
     const maxAttempts = 100;
-    const gridSize = 50; // حجم خلية الشبكة
+    const gridSize = 50;
 
     filteredGifts.forEach((gift, index) => {
       const size = getCrystalSize(gift);
@@ -71,11 +66,9 @@ const CrystalField: React.FC<{
       let x = 0, y = 0;
 
       while (!positionFound && attempts < maxAttempts) {
-        // تجربة مواقع عشوائية
         x = edgeMargin + size/2 + Math.random() * (width - size - 2*edgeMargin);
         y = edgeMargin + size/2 + Math.random() * (height - size - 2*edgeMargin);
         
-        // التحقق من التصادم مع البلورات الأخرى
         positionFound = positions.every(pos => {
           const distance = Math.sqrt(Math.pow(x - pos.x, 2) + Math.pow(y - pos.y, 2));
           const minAllowedDistance = (size + pos.size)/2 + minDistance;
@@ -100,7 +93,6 @@ const CrystalField: React.FC<{
     setCrystalPositions(positions);
   }, [filteredGifts, getCrystalSize]);
 
-  // تطبيق قوة التنافر
   const applyRepulsion = useCallback(() => {
     setCrystalPositions(prevPositions => {
       const newPositions = [...prevPositions];
@@ -108,12 +100,11 @@ const CrystalField: React.FC<{
       const fieldHeight = fieldRef.current?.clientHeight || window.innerHeight;
 
       newPositions.forEach((pos, i) => {
-        if (pos.isDragging) return; // لا تنطبق على البلورات المسحوبة
+        if (pos.isDragging) return;
 
         let totalForceX = 0;
         let totalForceY = 0;
 
-        // حساب القوى من البلورات الأخرى
         newPositions.forEach((otherPos, j) => {
           if (i === j) return;
 
@@ -129,11 +120,9 @@ const CrystalField: React.FC<{
           }
         });
 
-        // تطبيق القوى مع مراعاة الحدود
         let newX = pos.x + totalForceX;
         let newY = pos.y + totalForceY;
 
-        // منع الخروج من الحدود
         newX = Math.max(pos.size/2 + edgeMargin, Math.min(fieldWidth - pos.size/2 - edgeMargin, newX));
         newY = Math.max(pos.size/2 + edgeMargin, Math.min(fieldHeight - pos.size/2 - edgeMargin, newY));
 
@@ -144,21 +133,21 @@ const CrystalField: React.FC<{
     });
   }, [repulsionForce, minDistance]);
 
-  // تحديث المواقع عند التغييرات
   useEffect(() => {
     generateInitialPositions();
-    const resizeObserver = new ResizeObserver(() => generateInitialPositions());
-    if (fieldRef.current) resizeObserver.observe(fieldRef.current);
-    return () => resizeObserver.disconnect();
+
+    if (typeof ResizeObserver !== "undefined" && fieldRef.current) {
+      const resizeObserver = new ResizeObserver(() => generateInitialPositions());
+      resizeObserver.observe(fieldRef.current);
+      return () => resizeObserver.disconnect();
+    }
   }, [generateInitialPositions]);
 
-  // حلقة التنافر المستمرة
   useEffect(() => {
     const repulsionInterval = setInterval(applyRepulsion, 50);
     return () => clearInterval(repulsionInterval);
   }, [applyRepulsion]);
 
-  // معالجة بدء السحب
   const handleDragStart = useCallback((id: string) => {
     setCrystalPositions(prev => 
       prev.map(pos => 
@@ -167,7 +156,6 @@ const CrystalField: React.FC<{
     );
   }, []);
 
-  // معالجة انتهاء السحب
   const handleDragEnd = useCallback((id: string, newX: number, newY: number) => {
     setCrystalPositions(prev => {
       const updated = prev.map(pos => 
@@ -175,8 +163,6 @@ const CrystalField: React.FC<{
           ? { ...pos, x: newX, y: newY, isDragging: false, zIndex: prev.length }
           : pos
       );
-      
-      // تطبيق تنافر فوري بعد الإفلات
       setTimeout(applyRepulsion, 100);
       return updated;
     });
@@ -190,15 +176,13 @@ const CrystalField: React.FC<{
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* تأثيرات خلفية */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.03),transparent_70%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(239,68,68,0.03),transparent_70%)]" />
-      
-      {/* عرض البلورات */}
+
       {crystalPositions.map((position) => {
         const gift = filteredGifts.find(g => g.id === position.id);
         if (!gift) return null;
-        
+
         return (
           <Crystal
             key={gift.id}
@@ -213,8 +197,7 @@ const CrystalField: React.FC<{
           />
         );
       })}
-      
-      {/* حالة عدم وجود نتائج */}
+
       {filteredGifts.length === 0 && (
         <motion.div 
           className="absolute inset-0 flex items-center justify-center"
