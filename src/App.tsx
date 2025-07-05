@@ -15,13 +15,18 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // ✅ تهيئة Telegram WebApp SDK
-  useEffect(() => {
-    WebApp.ready();     // يخبر تيليجرام أن التطبيق جاهز
-    WebApp.expand();    // يطلب توسيع الواجهة
+useEffect(() => {
+  const timeout = setTimeout(() => {
+    if (typeof WebApp !== "undefined") {
+      WebApp.ready();
+      WebApp.expand();
+      WebApp.setHeaderColor("#0f172a");
+      console.log("Telegram WebApp initialized safely:", WebApp);
+    }
+  }, 300); // نأخر التشغيل لضمان استقرار الواجهة
 
-    // تغيير لون الهيدر (بشكل آمن)
-    if (window.Telegram?.WebApp?.setHeaderColor) {
-      window.Telegram.WebApp.setHeaderColor("#0f172a");
+  return () => clearTimeout(timeout);
+}, []);
     }
 
     // طباعة لمراجعة التهيئة
