@@ -15,21 +15,6 @@ interface HeaderProps {
   onRefresh: () => void;
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { y: -20, opacity: 0 },
-  show: { y: 0, opacity: 1 }
-};
-
 const Header: React.FC<HeaderProps> = ({
   trendData,
   timeFilter,
@@ -44,8 +29,8 @@ const Header: React.FC<HeaderProps> = ({
   const timeFilters: { key: TimeFilter; label: string }[] = [
     { key: 'today', label: 'Day' },
     { key: 'week', label: 'Week' },
-    { key: '30days', label: '30 Days' },
-    { key: 'alltime', label: 'All time' }
+    { key: '30days', label: '30D' }, // اختصر النص ليتناسب مع الشاشات الصغيرة
+    { key: 'alltime', label: 'All' }
   ];
 
   const handleTimeFilterChange = useCallback((filter: TimeFilter) => {
@@ -53,38 +38,31 @@ const Header: React.FC<HeaderProps> = ({
   }, [onTimeFilterChange]);
 
   return (
-    <motion.div 
-      className="bg-gray-900/95 backdrop-blur-md border-b border-gray-800 p-4 space-y-4"
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-    >
-      {/* Top Row */}
-      <motion.div className="flex items-center justify-between" variants={itemVariants}>
-        {/* Left: Gifts Dropdown */}
+    <div className="bg-gray-900/95 backdrop-blur-md border-b border-gray-800 p-3 space-y-3 w-full max-w-[100vw] overflow-x-hidden">
+      {/* الصف العلوي - معدل ليتكيف مع الشاشات الصغيرة */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* عنصر القائمة المنسدلة */}
         <motion.div 
-          className="flex items-center bg-gray-800/50 rounded-lg px-3 py-2 border border-gray-700 cursor-pointer"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          variants={itemVariants}
+          className="flex items-center bg-gray-800/50 rounded-lg px-3 py-1.5 border border-gray-700 min-w-[100px]"
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
         >
-          <span className="text-white font-medium">Gifts</span>
-          <ChevronDown className="w-4 h-4 ml-2 text-gray-400" />
+          <span className="text-white font-medium text-sm whitespace-nowrap">Gifts</span>
+          <ChevronDown className="w-3.5 h-3.5 ml-1.5 text-gray-400" />
         </motion.div>
 
-        {/* Right: Trend Counter */}
-        <div className="flex items-center space-x-4">
+        {/* العدادات - معدلة للشاشات الصغيرة */}
+        <div className="flex flex-wrap items-center gap-2">
           <motion.div 
-            className="flex items-center bg-gray-800/50 rounded-lg px-3 py-2 border border-gray-700"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            variants={itemVariants}
+            className="flex items-center bg-gray-800/50 rounded-lg px-2 py-1 border border-gray-700"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
-            <TrendingUp className="w-4 h-4 text-green-400 mr-1" />
+            <TrendingUp className="w-3.5 h-3.5 text-green-400 mr-1" />
             <motion.span 
-              className="text-green-400 font-bold text-lg"
+              className="text-green-400 font-bold text-sm"
               key={trendData.rising}
-              initial={{ scale: 1.2 }}
+              initial={{ scale: 1.1 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
@@ -93,35 +71,31 @@ const Header: React.FC<HeaderProps> = ({
           </motion.div>
 
           <motion.div 
-            className="flex items-center bg-gray-800/50 rounded-lg px-3 py-2 border border-gray-700"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            variants={itemVariants}
+            className="flex items-center bg-gray-800/50 rounded-lg px-2 py-1 border border-gray-700"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
-            <TrendingDown className="w-4 h-4 text-red-400 mr-1" />
+            <TrendingDown className="w-3.5 h-3.5 text-red-400 mr-1" />
             <motion.span 
-              className="text-red-400 font-bold text-lg"
+              className="text-red-400 font-bold text-sm"
               key={trendData.falling}
-              initial={{ scale: 1.2 }}
+              initial={{ scale: 1.1 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
               {trendData.falling}
             </motion.span>
           </motion.div>
-
-          <ChevronDown className="w-4 h-4 text-gray-400" />
         </div>
-      </motion.div>
+      </div>
 
-      {/* Second Row: Time Filters and Options */}
-      <motion.div className="flex items-center justify-between" variants={itemVariants}>
-        {/* Time Filter Tabs */}
-        <div className="flex space-x-2">
+      {/* صف الفلاتر الزمنية - متجاوب مع الشاشات الصغيرة */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-1.5">
           {timeFilters.map((filter) => (
             <motion.button
               key={filter.key}
-              className={`px-4 py-2 rounded-lg border transition-all ${
+              className={`px-2.5 py-1.5 rounded-lg border text-xs ${
                 timeFilter === filter.key
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-gray-800/50 text-gray-300 border-gray-600 hover:border-gray-500'
@@ -129,59 +103,52 @@ const Header: React.FC<HeaderProps> = ({
               onClick={() => handleTimeFilterChange(filter.key)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              animate={{
-                boxShadow: timeFilter === filter.key 
-                  ? "0 0 10px rgba(16, 185, 129, 0.5)" 
-                  : "none"
-              }}
-              variants={itemVariants}
             >
               {filter.label}
             </motion.button>
           ))}
         </div>
 
-        {/* Show Small Changes Toggle */}
-        <div className="flex items-center space-x-3">
-          <label className="flex items-center space-x-2 cursor-pointer">
+        {/* خيار التغييرات الصغيرة */}
+        <div className="flex items-center">
+          <label className="flex items-center space-x-1.5 cursor-pointer">
             <input
               type="checkbox"
               checked={showSmallChanges}
               onChange={onToggleSmallChanges}
-              className="w-4 h-4 text-green-500 bg-gray-800 border-gray-600 rounded focus:ring-green-500"
+              className="w-3.5 h-3.5 text-green-500 bg-gray-800 border-gray-600 rounded focus:ring-green-500"
             />
-            <span className="text-gray-300 text-sm">Show small changes</span>
+            <span className="text-gray-300 text-xs whitespace-nowrap">Small changes</span>
           </label>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Third Row: Search and Refresh */}
-      <motion.div className="flex items-center space-x-3" variants={itemVariants}>
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+      {/* صف البحث والتحديث - متكيف تمامًا */}
+      <div className="flex flex-wrap items-center gap-2 w-full">
+        <div className="flex-1 min-w-[150px] relative">
+          <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
           <input
             type="text"
             placeholder="Search gifts..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full bg-gray-800/50 border border-gray-600 rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="w-full bg-gray-800/50 border border-gray-600 rounded-lg pl-8 pr-2.5 py-1.5 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent"
             aria-label="Search gifts"
           />
         </div>
         
         <motion.button
           onClick={onRefresh}
-          className="flex items-center space-x-2 bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-gray-300 hover:text-white transition-colors"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95, rotate: 180 }}
+          className="flex items-center space-x-1.5 bg-gray-800/50 border border-gray-600 rounded-lg px-2 py-1.5 text-gray-300 hover:text-white transition-colors text-xs whitespace-nowrap"
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97, rotate: 180 }}
           aria-label={`Refresh data, last updated at ${lastUpdate.toLocaleTimeString()}`}
-          variants={itemVariants}
         >
-          <RefreshCw className="w-4 h-4" />
-          <span className="text-xs">{lastUpdate.toLocaleTimeString()}</span>
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span>{lastUpdate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
         </motion.button>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 
