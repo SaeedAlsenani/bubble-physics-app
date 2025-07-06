@@ -1,0 +1,30 @@
+[
+  {
+    "id": "gift1",
+    "name": "Blue Star",
+    "icon": "🌟",
+    "price": 120,
+    "percentChange": 5.2,
+    "volume": 850,
+    "rarity": "rare",
+    "lastUpdated": "2025-07-05T12:00:00Z",
+    "historicalData": [
+      { "timestamp": "2025-07-04T12:00:00Z", "price": 100 },
+      { "timestamp": "2025-07-05T12:00:00Z", "price": 120 }
+    ]
+  },
+  {
+    "id": "gift2",
+    "name": "Red Flame",
+    "icon": "🔥",
+    "price": 95,
+    "percentChange": -2.8,
+    "volume": 560,
+    "rarity": "common",
+    "lastUpdated": "2025-07-05T12:00:00Z",
+    "historicalData": [
+      { "timestamp": "2025-07-04T12:00:00Z", "price": 98 },
+      { "timestamp": "2025-07-05T12:00:00Z", "price": 95 }
+    ]
+  }
+]
