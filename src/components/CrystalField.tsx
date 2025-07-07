@@ -27,24 +27,24 @@ const CrystalField: React.FC<{
   const filteredGifts = useMemo(() => {
     return gifts.filter(gift => {
       const matchesSearch = gift.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesSmallChanges = showSmallChanges || Math.abs(gift.percentChange) >= 2;
+      const matchesSmallChanges = showSmallChanges || gift.changePercent >= 1;
       return matchesSearch && matchesSmallChanges;
     });
   }, [gifts, searchQuery, showSmallChanges]);
 
   const getCrystalSize = useCallback((gift: Gift) => {
     const baseSize = 40;
-    const changeMultiplier = Math.min(Math.abs(gift.percentChange) / 10, 2);
-    const volumeMultiplier = Math.min(gift.volume / 1000, 1.5);
+    const changeMultiplier = Math.min(Math.abs(gift.changePercent) / 10, 3);
+    const volumeMultiplier = Math.min(gift.volume / 1000000, 3);
     const rarityMultiplier = {
       common: 1,
       rare: 1.2,
       epic: 1.4,
       legendary: 1.6
     }[gift.rarity];
-    
-    return Math.max(20, Math.min(150, 
-      baseSize + changeMultiplier * 15 + volumeMultiplier * 10 + rarityMultiplier * 5
+
+    return Math.max(20, Math.min(150,
+      baseSize + changeMultiplier * 15 + volumeMultiplier * 10
     ));
   }, []);
 
@@ -64,8 +64,8 @@ const CrystalField: React.FC<{
       let x = 0, y = 0;
 
       while (!positionFound && attempts < maxAttempts) {
-        x = edgeMargin + size / 2 + Math.random() * (width - size - 2 * edgeMargin);
-        y = edgeMargin + size / 2 + Math.random() * (height - size - 2 * edgeMargin);
+        x = edgeMargin + size / 2 + Math.random() * (width - size - edgeMargin * 2);
+        y = edgeMargin + size / 2 + Math.random() * (height - size - edgeMargin * 2);
 
         positionFound = positions.every(pos => {
           const dx = x - pos.x;
@@ -96,8 +96,8 @@ const CrystalField: React.FC<{
   const applyRepulsion = useCallback(() => {
     setCrystalPositions(prev => {
       const newPos = [...prev];
-      const width = fieldRef.current?.clientWidth || window.innerWidth;
-      const height = fieldRef.current?.clientHeight || window.innerHeight;
+      const width = fieldRef.current?.clientWidth || 800;
+      const height = fieldRef.current?.clientHeight || 600;
 
       newPos.forEach((pos, i) => {
         if (pos.isDragging) return;
@@ -111,7 +111,7 @@ const CrystalField: React.FC<{
           const d = Math.sqrt(dx * dx + dy * dy);
           const minAllowed = (pos.size + other.size) / 2 + minDistance;
           if (d < minAllowed) {
-            const F = repulsionForce * (minAllowed - d) / (d || 1);
+            const F = repulsionForce * (minAllowed - d) / d;
             fx -= dx * F;
             fy -= dy * F;
           }
@@ -122,7 +122,6 @@ const CrystalField: React.FC<{
 
         nx = Math.max(pos.size / 2 + edgeMargin, Math.min(width - pos.size / 2 - edgeMargin, nx));
         ny = Math.max(pos.size / 2 + edgeMargin, Math.min(height - pos.size / 2 - edgeMargin, ny));
-
         newPos[i] = { ...pos, x: nx, y: ny };
       });
 
@@ -130,7 +129,7 @@ const CrystalField: React.FC<{
     });
   }, [repulsionForce, minDistance]);
 
-  // توزيع أولي بدون حركة مستمرة
+  // Initial distribution without continuous movement
   useEffect(() => {
     generateInitialPositions();
     if (typeof ResizeObserver !== 'undefined' && fieldRef.current) {
@@ -140,20 +139,20 @@ const CrystalField: React.FC<{
     }
   }, [generateInitialPositions]);
 
-  // تطبيق النفور مرة واحدة فقط
+  // Apply repulsion once
   useEffect(() => {
     applyRepulsion();
   }, [applyRepulsion]);
 
   const handleDragStart = useCallback((id: string) => {
     setCrystalPositions(prev =>
-      prev.map(p => p.id === id ? { ...p, isDragging: true, zIndex: prev.length } : p)
+      prev.map(p => p.id === id ? { ...p, isDragging: true } : p)
     );
   }, []);
 
   const handleDragEnd = useCallback((id: string, x: number, y: number) => {
     setCrystalPositions(prev => {
-      const updated = prev.map(p => p.id === id ? { ...p, isDragging: false, x, y, zIndex: prev.length } : p);
+      const updated = prev.map(p => p.id === id ? { ...p, x, y, isDragging: false } : p);
       setTimeout(applyRepulsion, 100);
       return updated;
     });
@@ -162,13 +161,13 @@ const CrystalField: React.FC<{
   return (
     <motion.div
       ref={fieldRef}
-      className="relative w-full h-full bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden"
+      className="relative w-full h-full bg-gradient-to-b from-blue-900 to-purple-900 overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.03),transparent_70%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,rgba(239,68,68,0.03),transparent_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(173,216,230,0.15)_0%,transparent_50%)]" />
 
       {crystalPositions.map(pos => {
         const gift = filteredGifts.find(g => g.id === pos.id);
@@ -196,10 +195,10 @@ const CrystalField: React.FC<{
           transition={{ delay: 0.3 }}
         >
           <div className="text-center space-y-4">
-            <motion.div animate={{ y: [-10, 0, -10] }} transition={{ duration: 4, repeat: Infinity }} className="text-6xl">
+            <motion.div animate={{ y: [-10, 0, -10] }} transition={{ duration: 2, repeat: Infinity }}>
               💎
             </motion.div>
-            <div className="text-gray-400 text-lg">No crystals found</div>
+            <div className="text-gray-400 text-xl">No crystals found</div>
             <div className="text-gray-500 text-sm">Try adjusting your search or filters</div>
           </div>
         </motion.div>
