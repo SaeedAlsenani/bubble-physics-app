@@ -3,9 +3,7 @@ import WebApp from "@twa-dev/sdk";
 import { motion } from 'framer-motion';
 import Header from './components/Header';
 import CrystalField from './components/CrystalField';
-import GiftDetailModal from './components/GiftDetailModal';
-import giftsData from './data/gifts.json';
-import { Gift, TimeFilter, TrendData } from './types/Gift';
+import GiftDetailModal from './components/GiftDetailModal'import { Gift, TimeFilter, TrendData } from './types/Gift';
 
 const App = () => {
   // States
