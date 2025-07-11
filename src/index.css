@@ -1,3 +1,23 @@
+/* الأساسيات */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* إضافات ضرورية */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #0f172a; /* bg-slate-900 */
+}
+
+/* حماية ضد العناصر الخفية */
+.min-h-screen {
+  min-height: 100vh;
+}
+
+/* تأكد من ظهور العناصر */
+.visible-check {
+  border: 1px solid red !important;
+}
