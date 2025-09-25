@@ -14,7 +14,7 @@
 
 ```bash
 # نسخ المستودع
-git clone https://github.com/username/bubble-physics-app.git
+git clone https://github.com/SaeedAlsenani/bubble-physics-app.git
 
 # الدخول للمجلد
 cd bubble-physics-app
@@ -66,6 +66,12 @@ npm run deploy
 3. Commit التغييرات (`git commit -m 'Add amazing feature'`)
 4. Push إلى الفرع (`git push origin feature/amazing-feature`)
 5. Open Pull Request
+
+## badges
+
+![GitHub last commit](https://img.shields.io/github/last-commit/SaeedAlsenani/bubble-physics-app)
+![GitHub issues](https://img.shields.io/github/issues/SaeedAlsenani/bubble-physics-app)
+![GitHub license](https://img.shields.io/github/license/SaeedAlsenani/bubble-physics-app)
 
 ## 📄 الرخصة
 
