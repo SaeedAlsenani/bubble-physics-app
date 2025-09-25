@@ -14,5 +14,8 @@
   "devDependencies": {
     "live-server": "^1.2.2",
     "gh-pages": "^5.0.0"
+  },
+  "scripts": {
+    "deploy": "gh-pages -d public"
   }
 }
